@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop   
+        http://www.springframework.org/schema/aop/spring-aop-4.3.xsd   
+        http://www.springframework.org/schema/beans   
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd   
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<bean id="aspectAdvise" class="com.renke.assist.AspectAdvise" />
+	
+	<bean id="springDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="false">
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://10.10.3.218:3306/springdb?characterEncoding=utf8"/>
+		<property name="username" value="springdb"/>
+		<property name="password" value="springdb"/>
+	</bean>
+	<bean id="tomcatDataSource" class="org.apache.tomcat.jdbc.pool.DataSource" lazy-init="false">
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://10.10.3.218:3306/springdb?characterEncoding=utf8"/>
+		<property name="username" value="springdb"/>
+		<property name="password" value="springdb"/>
+		<property name="initSQL" value="select 1"/>
+		<!-- 心跳线，tomcat-jdbc-pool可以单独拿出来写一篇 -->
+		<property name="validationInterval" value="300000"/>
+		<property name="validationQuery" value="select 1"/>
+	</bean>
+	
+	<bean id="db2" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="tomcatDataSource" />
+	</bean>
+	
+	<bean id="mysql" class="org.springframework.jdbc.core.JdbcTemplate" >
+		<property name="dataSource" ref="springDataSource" />
+	</bean>
+	
+	<bean id="dao" class="com.renke.assist.MysqlDAO" >
+		<property name="mysql" ref="mysql" />
+		<property name="db2" ref="db2" />
+	</bean>
+	
+	<bean id="service" class="com.renke.assist.MysqlService" >
+		<property name="dao" ref="dao" />
+	</bean>
+	
+	
+	<bean id="mysqlManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="springDataSource" />
+	</bean>
+	
+	<bean id="db2Manager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="tomcatDataSource" />
+	</bean>
+	
+	<tx:advice id="txAdvice" transaction-manager="mysqlManager">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config proxy-target-class="true">
+		<aop:pointcut expression="execution(* com.renke.template.aspect..*(..))" id="executionPt" />
+		<aop:pointcut expression="execution(* *..*Service.insert*(..))" id="transactionPt" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="transactionPt"/>
+		<aop:aspect ref="aspectAdvise">
+			<aop:before method="before" pointcut-ref="executionPt"/>
+		</aop:aspect>
+	</aop:config>
+	
+</beans>

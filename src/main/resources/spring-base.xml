@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop   
+        http://www.springframework.org/schema/aop/spring-aop-4.3.xsd   
+        http://www.springframework.org/schema/beans   
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd   
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+	<bean id="msgBean" class="com.renke.template.MsgBean" />
+	<bean id="IOC" class="com.renke.template.IOCBean">
+		<property name="msgBean" ref="msgBean" />
+	</bean>
+	<bean id="aspectAdvise" class="com.renke.assist.AspectAdvise" />
+	<bean id="within" class="com.renke.template.aspect.Within" />
+	<bean id="this" class="com.renke.template.aspect.This" />
+	<bean id="target" class="com.renke.template.aspect.Target" />
+	<bean id="args" class="com.renke.template.aspect.Args" />
+	<bean id="before" class="com.renke.template.aspect.Before" />
+	
+	
+	<aop:config proxy-target-class="true">
+		<aop:pointcut expression="execution(* com.renke.template.aspect..*(..))" id="executionPt" />
+		<aop:pointcut expression="within(com.renke.template.aspect.Within)" id="withinPt" />
+		<aop:pointcut expression="this(com.renke.template.aspect.This)" id="thisPt" />
+		<aop:pointcut expression="target(com.renke.template.aspect.Target)" id="targetPt" />
+		<aop:pointcut expression="args(java.lang.String)" id="argsPt" />
+		<aop:aspect ref="aspectAdvise">
+			<aop:before method="before" pointcut-ref="executionPt"/>
+			<aop:after method="after" pointcut-ref="withinPt"/>
+			<aop:after-returning method="afterReturn" pointcut-ref="thisPt" />
+			<aop:after-throwing method="afterThrow" pointcut-ref="targetPt"/>
+<!-- 			<aop:around method="around"  pointcut-ref="argsPt"/> -->
+		</aop:aspect>
+	</aop:config>
+	
+</beans>
