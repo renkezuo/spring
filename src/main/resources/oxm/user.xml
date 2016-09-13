@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapping>
+	<class name="com.renke.pojo.User">
+		<map-to xml="user" />
+		<field name="id" type="integer">
+			<bind-xml name="id" node="element" />
+		</field>
+		<field name="contact" type="string">
+			<bind-xml name="contact" node="element" />
+		</field>
+		<field name="realName" type="string">
+			<bind-xml name="realName" node="element" />
+		</field>
+		<field name="sex" type="integer">
+			<bind-xml name="sex" node="element" />
+		</field>
+	</class>
+</mapping>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd 
+		http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	<!-- <context:component-scan base-package="com.renke.jms" /> -->
+
+	<!-- 连接工厂 -->
+	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://10.10.3.218:61616" />
+		<!-- activemq的安全性，默认为false -->
+<!-- 		<property name="trustAllPackages" value="true" /> -->
+		<property name="trustedPackages">
+			<list>
+				<!-- 默认 -->
+				<value>java.lang</value>
+				<value>javax.security</value>
+				<value>java.util</value>
+				<value>org.apache.activemq</value>
+				<value>org.fusesource.hawtbuf</value>
+				<value>com.thoughtworks.xstream.mapper</value>
+				<!-- 自定义 -->
+				<value>com.renke</value>
+				<value>org.springframework</value>
+			</list>
+		</property>
+		<!--
+			不设置trstAllPackages，则取trustedPackages(List<String>)
+			默认取org.apache.activemq.SERIALIZABLE_PACKAGES系统参数，以[,]分隔，参数不存在则取
+			java.lang,javax.security,java.util,org.apache.activemq,org.fusesource.hawtbuf,com.thoughtworks.xstream.mapper
+		 -->
+	</bean>
+
+	<!-- 消息队列，一个消息只有一个接收人 -->
+	<bean id="queue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="myMQ" />
+	</bean>
+
+	<!-- 服务 -->
+	<bean id="checkingAccountService" class="org.springframework.jms.remoting.JmsInvokerServiceExporter">
+		<!-- 服务的接口 -->
+		<property name="serviceInterface" value="com.renke.jms.CheckingAccountService" />
+		<!-- 服务的实现，不可以直接在property中写入value="com.renke.jms.SimpleCheckingAccountService" -->
+		<property name="service">
+			<bean class="com.renke.jms.SimpleCheckingAccountService" />
+		</property>
+	</bean>
+
+	<!-- 监听器容器 -->
+	<bean class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="queue" />
+		<property name="concurrentConsumers" value="3" />
+		<property name="messageListener" ref="checkingAccountService" />
+	</bean>
+
+</beans>
