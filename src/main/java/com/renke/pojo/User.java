@@ -3,6 +3,13 @@ package com.renke.pojo;
 import java.io.Serializable;
 
 public class User implements Serializable{
+	/**
+	 * 
+	 * serialVersionUID
+	 * @author renke.zuo@foxmail.com
+	 * @time 2016-09-13 11:19:04 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int id;
 	private String contact;
 	private String password;
