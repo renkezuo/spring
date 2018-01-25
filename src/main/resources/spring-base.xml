@@ -14,7 +14,7 @@
         http://www.springframework.org/schema/tx
         http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
 
-
+	<context:component-scan base-package="com.renke.scan" />
 	<bean id="msgBean" class="com.renke.template.MsgBean" />
 	<bean id="IOC" class="com.renke.template.IOCBean">
 		<property name="msgBean" ref="msgBean" />
